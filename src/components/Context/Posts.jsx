@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import Post from "./Post";
 
-const Posts = props => {
+const Posts = () => {
   const [posts, setPosts] = useState([]);
   useEffect(() => {
     const getPosts = async () => {
@@ -17,7 +17,7 @@ const Posts = props => {
       <ol>
         {posts.map(post => (
           <li key={post.id}>
-            <Post data={post} user={props.user} />
+            <Post data={post} />
           </li>
         ))}
       </ol>
