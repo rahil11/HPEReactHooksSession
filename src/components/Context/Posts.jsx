@@ -78,6 +78,8 @@ const PostsReducer = (state, action) => {
   }
 };
 
+export const PostsContext = React.createContext();
+
 const Posts = () => {
   const user = useContext(UserContext);
 
@@ -106,21 +108,17 @@ const Posts = () => {
       <span>Filter: </span>
       <button onClick={getPostsOfUser}>My Posts</button> |{" "}
       <button onClick={getAllPosts}>All Posts</button>
-      <ol>
-        {(state.isFiltered ? state.filteredPosts : state.allPosts).map(post => (
-          <li key={post.id}>
-            <Post
-              toggleLike={(postId, userId) =>
-                dispatch({ type: "TOGGLE_LIKE", data: { postId, userId } })
-              }
-              deletePost={postId =>
-                dispatch({ type: "DELETE_POST", data: { postId } })
-              }
-              data={post}
-            />
-          </li>
-        ))}
-      </ol>
+      <PostsContext.Provider value={{ postUtility: dispatch }}>
+        <ol>
+          {(state.isFiltered ? state.filteredPosts : state.allPosts).map(
+            post => (
+              <li key={post.id}>
+                <Post data={post} />
+              </li>
+            )
+          )}
+        </ol>
+      </PostsContext.Provider>
     </div>
   );
 };
