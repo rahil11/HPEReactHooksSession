@@ -1,19 +1,49 @@
-import React, { useEffect, useState, useContext } from "react";
+import React, { useEffect, useState, useContext, useReducer } from "react";
 import Post from "./Post";
 import { UserContext } from "../../App";
 
+const initialState = {
+  allPosts: [],
+  filteredPosts: [],
+  isFiltered: false
+};
+
+const PostsReducer = (state, action) => {
+  switch (action.type) {
+    case "SET_ALL":
+      return {
+        ...state,
+        allPosts: action.data
+      };
+    case "FILTER_FOR_USER":
+      return {
+        ...state,
+        filteredPosts: state.allPosts.filter(
+          post => post.userId === action.userId
+        ),
+        isFiltered: true
+      };
+    case "CLEAR_FILTER":
+      return {
+        ...state,
+        filteredPosts: [],
+        isFiltered: false
+      };
+    default:
+      return state;
+  }
+};
+
 const Posts = () => {
   const user = useContext(UserContext);
-  const [posts, setPosts] = useState([]);
-  const [isFiltered, setIsFiltered] = useState(false);
-  const [filteredPosts, setFilteredPosts] = useState([]);
+
+  const [state, dispatch] = useReducer(PostsReducer, initialState);
+
   const getAllPosts = () => {
-    setFilteredPosts([]);
-    setIsFiltered(false);
+    dispatch({ type: "CLEAR_FILTER" });
   };
   const getPostsOfUser = () => {
-    setFilteredPosts(posts.filter(post => post.userId === user.id));
-    setIsFiltered(true);
+    dispatch({ type: "FILTER_FOR_USER", userId: user.id });
   };
 
   useEffect(() => {
@@ -21,7 +51,8 @@ const Posts = () => {
       const response = await fetch(
         "https://jsonplaceholder.typicode.com/posts"
       );
-      setPosts(await response.json());
+      const postsResponse = await response.json();
+      dispatch({ type: "SET_ALL", data: postsResponse });
     };
     getPosts();
   }, []);
@@ -32,7 +63,7 @@ const Posts = () => {
       <button onClick={getPostsOfUser}>My Posts</button> |{" "}
       <button onClick={getAllPosts}>All Posts</button>
       <ol>
-        {(isFiltered ? filteredPosts : posts).map(post => (
+        {(state.isFiltered ? state.filteredPosts : state.allPosts).map(post => (
           <li key={post.id}>
             <Post data={post} />
           </li>
