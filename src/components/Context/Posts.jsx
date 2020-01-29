@@ -9,11 +9,35 @@ const initialState = {
 };
 
 const PostsReducer = (state, action) => {
+  const toggleLike = (listOfPosts, postId, userId) => {
+    return listOfPosts.map(post => {
+      // Check if user has liked the post already
+      const indexOfUserLike = post.likes.indexOf(userId);
+      if (postId === post.id) {
+        let likes = [...post.likes];
+        if (indexOfUserLike > -1) {
+          likes.splice(indexOfUserLike, 1);
+        } else {
+          likes = [...likes, userId];
+        }
+        return {
+          ...post,
+          likes
+        };
+      }
+      return post;
+    });
+  };
+
+  const filterPost = (listOfPosts, postId) => {
+    return listOfPosts.filter(post => post.id !== postId);
+  };
+
   switch (action.type) {
     case "SET_ALL":
       return {
         ...state,
-        allPosts: action.data
+        allPosts: action.data.map(post => ({ ...post, likes: [] }))
       };
     case "FILTER_FOR_USER":
       return {
@@ -28,6 +52,26 @@ const PostsReducer = (state, action) => {
         ...state,
         filteredPosts: [],
         isFiltered: false
+      };
+    case "TOGGLE_LIKE":
+      return {
+        ...state,
+        allPosts: toggleLike(
+          state.allPosts,
+          action.data.postId,
+          action.data.userId
+        ),
+        filteredPosts: toggleLike(
+          state.filteredPosts,
+          action.data.postId,
+          action.data.userId
+        )
+      };
+    case "DELETE_POST":
+      return {
+        ...state,
+        allPosts: filterPost(state.allPosts, action.data.postId),
+        filteredPosts: filterPost(state.filteredPosts, action.data.postId)
       };
     default:
       return state;
@@ -65,7 +109,15 @@ const Posts = () => {
       <ol>
         {(state.isFiltered ? state.filteredPosts : state.allPosts).map(post => (
           <li key={post.id}>
-            <Post data={post} />
+            <Post
+              toggleLike={(postId, userId) =>
+                dispatch({ type: "TOGGLE_LIKE", data: { postId, userId } })
+              }
+              deletePost={postId =>
+                dispatch({ type: "DELETE_POST", data: { postId } })
+              }
+              data={post}
+            />
           </li>
         ))}
       </ol>
