@@ -7,7 +7,7 @@ const Post = props => {
     <div>
       <h4>
         {props.data.title}{" "}
-        {user.id === props.data.userId && <a href="#">Edit</a>}
+        {user.id === props.data.userId && <button>Edit</button>}
       </h4>
       <p>{props.data.body}</p>
     </div>
